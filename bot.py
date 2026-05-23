@@ -40,10 +40,11 @@ def main():
     print("Webhook bot started...")
 
     app.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 10000)),
-        url_path=BOT_TOKEN,
-        webhook_url=f"{RENDER_URL}/{BOT_TOKEN}"
+    listen="0.0.0.0",
+    port=int(os.environ.get("PORT", 10000)),
+    url_path=BOT_TOKEN,
+    webhook_url=f"{RENDER_URL}/{BOT_TOKEN}",
+    drop_pending_updates=True
     )
 
 if __name__ == "__main__":
