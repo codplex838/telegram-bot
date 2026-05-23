@@ -6,23 +6,23 @@ import threading
 import os
 import mimetypes
 
-# =========================================
+# =========================================================
 # TELEGRAM API
-# =========================================
+# =========================================================
 
 API_ID = 33604359
 API_HASH = "02a8b195fe839d3ed727ca746748db10"
-BOT_TOKEN = "7313598031:AAHpI5-UCF3Cyw2QwhiV0gyTUR41oiIvcFY"
+BOT_TOKEN = "YOUR_NEW_BOT_TOKEN"
 
-# =========================================
+# =========================================================
 # DOMAIN
-# =========================================
+# =========================================================
 
 DOMAIN = "https://telegram-bot-1-az9g.onrender.com"
 
-# =========================================
+# =========================================================
 # PYROGRAM CLIENT
-# =========================================
+# =========================================================
 
 bot = Client(
     "streambot",
@@ -31,21 +31,21 @@ bot = Client(
     bot_token=BOT_TOKEN
 )
 
-# =========================================
+# =========================================================
 # FASTAPI
-# =========================================
+# =========================================================
 
 app = FastAPI()
 
-# =========================================
+# =========================================================
 # TEMP DATABASE
-# =========================================
+# =========================================================
 
 FILES = {}
 
-# =========================================
+# =========================================================
 # HOME
-# =========================================
+# =========================================================
 
 @app.get("/")
 async def home():
@@ -54,9 +54,9 @@ async def home():
         "status": "Telegram CDN Streaming Bot Running"
     }
 
-# =========================================
+# =========================================================
 # START COMMAND
-# =========================================
+# =========================================================
 
 @bot.on_message(filters.command("start"))
 async def start_command(client, message):
@@ -72,9 +72,9 @@ async def start_command(client, message):
         "⬇ Download Link"
     )
 
-# =========================================
+# =========================================================
 # RECEIVE MEDIA
-# =========================================
+# =========================================================
 
 @bot.on_message(filters.video | filters.document)
 async def media_handler(client, message):
@@ -106,9 +106,9 @@ async def media_handler(client, message):
         f"{download_link}"
     )
 
-# =========================================
-# WATCH PAGE
-# =========================================
+# =========================================================
+# WATCH PLAYER
+# =========================================================
 
 @app.get("/watch/{msg_id}", response_class=HTMLResponse)
 async def watch_video(msg_id: str):
@@ -117,12 +117,15 @@ async def watch_video(msg_id: str):
     <!DOCTYPE html>
 
     <html>
+
     <head>
 
         <title>Video Player</title>
 
-        <meta name="viewport"
-              content="width=device-width, initial-scale=1.0">
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        >
 
         <style>
 
@@ -164,14 +167,15 @@ async def watch_video(msg_id: str):
         </video>
 
     </body>
+
     </html>
     """
 
     return HTMLResponse(content=html)
 
-# =========================================
+# =========================================================
 # DOWNLOAD / STREAM
-# =========================================
+# =========================================================
 
 @app.get("/download/{msg_id}")
 async def download_video(msg_id: str, request: Request):
@@ -199,17 +203,21 @@ async def download_video(msg_id: str, request: Request):
 
     file_size = media.file_size
 
+    file_name = data["file_name"]
+
     mime_type = (
-        mimetypes.guess_type(data["file_name"])[0]
+        mimetypes.guess_type(file_name)[0]
         or "application/octet-stream"
     )
 
-    range_header = request.headers.get("range")
+    range_header = request.headers.get("range", None)
 
     start = 0
     end = file_size - 1
 
     if range_header:
+
+        range_header = range_header.strip().lower()
 
         bytes_range = range_header.replace(
             "bytes=",
@@ -218,41 +226,51 @@ async def download_video(msg_id: str, request: Request):
 
         start_str, end_str = bytes_range.split("-")
 
-        start = int(start_str)
+        start = int(start_str) if start_str else 0
 
-        if end_str:
-            end = int(end_str)
+        end = int(end_str) if end_str else file_size - 1
 
     chunk_size = end - start + 1
 
-    async def file_stream():
+    async def streamer():
 
-        async for chunk in bot.stream_media(
-            msg,
-            offset=start,
-            limit=chunk_size
-        ):
-            yield chunk
+        current = start
+
+        while current <= end:
+
+            to_read = min(
+                1024 * 1024,
+                end - current + 1
+            )
+
+            async for chunk in bot.stream_media(
+                msg,
+                offset=current,
+                limit=to_read
+            ):
+                yield chunk
+
+            current += to_read
 
     headers = {
         "Accept-Ranges": "bytes",
         "Content-Length": str(chunk_size),
         "Content-Range": f"bytes {start}-{end}/{file_size}",
-        "Content-Disposition": f'inline; filename="{data["file_name"]}"',
+        "Content-Disposition": f'inline; filename="{file_name}"',
         "Cache-Control": "no-cache",
         "Connection": "keep-alive"
     }
 
     return StreamingResponse(
-        file_stream(),
+        streamer(),
         status_code=206 if range_header else 200,
         media_type=mime_type,
         headers=headers
     )
 
-# =========================================
+# =========================================================
 # RUN FASTAPI
-# =========================================
+# =========================================================
 
 def run_fastapi():
 
@@ -262,9 +280,9 @@ def run_fastapi():
         port=int(os.environ.get("PORT", 10000))
     )
 
-# =========================================
+# =========================================================
 # START SERVICES
-# =========================================
+# =========================================================
 
 threading.Thread(
     target=run_fastapi,
