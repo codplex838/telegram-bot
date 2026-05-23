@@ -1,16 +1,15 @@
 from pyrogram import Client, filters
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import StreamingResponse, HTMLResponse
 import uvicorn
 import threading
 import os
-import uuid
 
 API_ID = 33604359
 API_HASH = "02a8b195fe839d3ed727ca746748db10"
 BOT_TOKEN = "7313598031:AAHpI5-UCF3Cyw2QwhiV0gyTUR41oiIvcFY"
 
-DOMAIN = "telegram-bot-1-az9g.onrender.com"
+DOMAIN = "https://telegram-bot-1-az9g.onrender.com"
 
 bot = Client(
     "streambot",
@@ -21,9 +20,7 @@ bot = Client(
 
 app = FastAPI()
 
-VIDEOS_DIR = "videos"
-
-os.makedirs(VIDEOS_DIR, exist_ok=True)
+FILES = {}
 
 
 @app.get("/")
@@ -34,60 +31,83 @@ async def home():
 @bot.on_message(filters.command("start"))
 async def start(client, message):
     await message.reply_text(
-        "Send me video/file and I will generate stream links."
+        "Send me any video/file."
     )
 
 
-@bot.on_message(filters.video | filters.document)
-async def generate_links(client, message):
+@bot.on_message(filters.media)
+async def media_handler(client, message):
 
-    unique_id = str(uuid.uuid4())
+    file_id = None
 
-    file_path = await message.download(
-        file_name=f"{VIDEOS_DIR}/{unique_id}.mp4"
-    )
+    if message.video:
+        file_id = message.video.file_id
 
-    watch_link = f"{DOMAIN}/watch/{unique_id}"
-    download_link = f"{DOMAIN}/download/{unique_id}"
+    elif message.document:
+        file_id = message.document.file_id
+
+    if not file_id:
+        return
+
+    message_id = message.id
+    chat_id = message.chat.id
+
+    FILES[str(message_id)] = {
+        "chat_id": chat_id,
+        "message_id": message_id
+    }
+
+    watch_link = f"{DOMAIN}/watch/{message_id}"
+    download_link = f"{DOMAIN}/download/{message_id}"
 
     await message.reply_text(
-        f"✅ File Uploaded\n\n"
         f"▶ Stream:\n{watch_link}\n\n"
         f"⬇ Download:\n{download_link}"
     )
 
 
-@app.get("/watch/{video_id}", response_class=HTMLResponse)
-async def watch(video_id: str):
+@app.get("/watch/{msg_id}", response_class=HTMLResponse)
+async def watch(msg_id: str):
 
-    video_file = f"{VIDEOS_DIR}/{video_id}.mp4"
-
-    html_content = f"""
+    html = f"""
     <html>
     <body style="margin:0;background:black;">
-    <video width="100%" height="100%" controls autoplay>
-        <source src="/download/{video_id}" type="video/mp4">
+    <video width="100%" controls autoplay>
+        <source src="/download/{msg_id}" type="video/mp4">
     </video>
     </body>
     </html>
     """
 
-    return html_content
+    return html
 
 
-@app.get("/download/{video_id}")
-async def download(video_id: str):
+@app.get("/download/{msg_id}")
+async def download(msg_id: str):
 
-    video_file = f"{VIDEOS_DIR}/{video_id}.mp4"
+    data = FILES.get(msg_id)
 
-    return FileResponse(
-        path=video_file,
-        media_type="video/mp4",
-        filename=f"{video_id}.mp4"
+    if not data:
+        return {"error": "File not found"}
+
+    msg = await bot.get_messages(
+        data["chat_id"],
+        data["message_id"]
+    )
+
+    async def file_stream():
+
+        async for chunk in bot.stream_media(msg):
+            yield chunk
+
+    return StreamingResponse(
+        file_stream(),
+        media_type="video/mp4"
     )
 
 
 def run_fastapi():
+
     uvicorn.run(
         app,
         host="0.0.0.0",
@@ -95,6 +115,6 @@ def run_fastapi():
     )
 
 
-threading.Thread(target=run_fastapi).start()
+threading.Thread(target=run_fastapi, daemon=True).start()
 
 bot.run()
