@@ -6,19 +6,20 @@ from pymongo import MongoClient
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MONGO_URI = os.getenv("MONGO_URI")
 
-client = MongoClient(
-    MONGO_URI,
-    tls=True,
-    tlsAllowInvalidCertificates=True
-)
+# MongoDB Connection
+client = MongoClient(MONGO_URI)
 
+# Database
 db = client["videoBot"]
+
+# Collection
 collection = db["users"]
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user = update.effective_user
 
+    # Save user in MongoDB
     collection.insert_one({
         "user_id": user.id,
         "username": user.username,
@@ -26,7 +27,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     })
 
     await update.message.reply_text(
-        "Bot + MongoDB working!"
+        "Hello! Bot + MongoDB working successfully!"
     )
 
 def main():
@@ -35,12 +36,11 @@ def main():
 
     app.add_handler(CommandHandler("start", start))
 
-    print("Bot started successfully")
+    print("Bot Started...")
 
-    app.run_polling(drop_pending_updates=True)
+    app.run_polling(
+        drop_pending_updates=True
+    )
 
 if __name__ == "__main__":
-    app.run_polling(
-        drop_pending_updates=True,
-        close_loop=False
-    )
+    main()
