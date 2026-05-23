@@ -6,7 +6,7 @@ from telegram.ext import (
     ContextTypes,
 )
 
-BOT_TOKEN = "7313598031:AAH-nxgICvUa2mNxGni043bq-u4QfXfJXUQ"
+BOT_TOKEN = "7313598031:AAHpI5-UCF3Cyw2QwhiV0gyTUR41oiIvcFY"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
