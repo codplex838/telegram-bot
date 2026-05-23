@@ -3,12 +3,11 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-
 RENDER_URL = os.getenv("RENDER_EXTERNAL_URL")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Hello! Professional webhook bot is running!"
+        "Hello! Webhook bot is running successfully!"
     )
 
 def main():
