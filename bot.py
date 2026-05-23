@@ -4,23 +4,17 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 from pymongo import MongoClient
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-RENDER_URL = os.getenv("RENDER_EXTERNAL_URL")
 MONGO_URI = os.getenv("MONGO_URI")
 
-# MongoDB Connection
 client = MongoClient(MONGO_URI)
 
-# Database
 db = client["videoBot"]
-
-# Collection
 collection = db["users"]
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user = update.effective_user
 
-    # Save user data
     collection.insert_one({
         "user_id": user.id,
         "username": user.username,
@@ -28,7 +22,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     })
 
     await update.message.reply_text(
-        "Hello! Webhook bot + MongoDB working successfully!"
+        "Bot + MongoDB working!"
     )
 
 def main():
@@ -37,18 +31,9 @@ def main():
 
     app.add_handler(CommandHandler("start", start))
 
-    print("Webhook bot started...")
-    print("BOT TOKEN:", BOT_TOKEN)
-    print("RENDER URL:", RENDER_URL)
-    print("Mongo Connected Successfully")
+    print("Bot started successfully")
 
-    app.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 10000)),
-        url_path=BOT_TOKEN,
-        webhook_url=f"{RENDER_URL}/{BOT_TOKEN}",
-        drop_pending_updates=True
-    )
+    app.run_polling()
 
 if __name__ == "__main__":
     main()
