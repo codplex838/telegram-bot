@@ -46,20 +46,25 @@ async def generate_link(client, message):
     )
 
 
+from fastapi.responses import RedirectResponse
+
+
 @app.get("/watch/{file_id}")
 async def watch_video(file_id: str):
-    return {
-        "message": "Streaming endpoint working",
-        "file_id": file_id
-    }
+
+    file = await bot.get_messages("me", ids=1)
+
+    tg_file = await bot.download_media(file_id)
+
+    return RedirectResponse(url=tg_file)
 
 
 @app.get("/download/{file_id}")
 async def download_video(file_id: str):
-    return {
-        "message": "Download endpoint working",
-        "file_id": file_id
-    }
+
+    tg_file = await bot.download_media(file_id)
+
+    return RedirectResponse(url=tg_file)
 
 
 def run_fastapi():
