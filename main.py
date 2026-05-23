@@ -47,8 +47,8 @@ async def generate_links(client, message):
         file_name=f"{VIDEOS_DIR}/{unique_id}.mp4"
     )
 
-    watch_link = f"https://{DOMAIN}/watch/{unique_id}"
-download_link = f"https://{DOMAIN}/download/{unique_id}"
+    watch_link = f"{DOMAIN}/watch/{unique_id}"
+    download_link = f"{DOMAIN}/download/{unique_id}"
 
     await message.reply_text(
         f"✅ File Uploaded\n\n"
