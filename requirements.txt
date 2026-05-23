@@ -1,3 +1,5 @@
-python-telegram-bot[webhooks]==21.2
-pymongo
-dnspython
+pyrogram
+tgcrypto
+fastapi
+uvicorn
+aiofiles
