@@ -4,7 +4,7 @@ import os
 TOKEN = os.getenv("BOT_TOKEN")
 
 async def start(update, context):
-    await update.message.reply_text("Hello! Bot is running.")
+    await update.message.reply_text("Hello! Bot is running on Render.")
 
 app = ApplicationBuilder().token(TOKEN).build()
 
