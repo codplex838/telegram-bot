@@ -1,5 +1,6 @@
 from pyrogram import Client, filters
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 import uvicorn
 import threading
 import os
@@ -8,7 +9,7 @@ API_ID = 33604359
 API_HASH = "02a8b195fe839d3ed727ca746748db10"
 BOT_TOKEN = "7313598031:AAHpI5-UCF3Cyw2QwhiV0gyTUR41oiIvcFY"
 
-BOT_USERNAME = "telegram-bot-1-az9g.onrender.com"
+DOMAIN = "https://telegram-bot-1-az9g.onrender.com"
 
 bot = Client(
     "streambot",
@@ -22,7 +23,14 @@ app = FastAPI()
 
 @app.get("/")
 async def home():
-    return {"status": "Bot Running"}
+    return {"status": "Bot Running Successfully"}
+
+
+@bot.on_message(filters.command("start"))
+async def start_command(client, message):
+    await message.reply_text(
+        "Send me any video or file and I will generate stream/download links."
+    )
 
 
 @bot.on_message(filters.video | filters.document)
@@ -30,12 +38,28 @@ async def generate_link(client, message):
 
     file_id = message.video.file_id if message.video else message.document.file_id
 
-    stream_link = f"https://{BOT_USERNAME}/watch/{file_id}"
-    download_link = f"https://{BOT_USERNAME}/download/{file_id}"
+    stream_link = f"{DOMAIN}/watch/{file_id}"
+    download_link = f"{DOMAIN}/download/{file_id}"
 
     await message.reply_text(
-        f"▶ Stream:\n{stream_link}\n\n⬇ Download:\n{download_link}"
+        f"▶ Stream Link:\n{stream_link}\n\n⬇ Download Link:\n{download_link}"
     )
+
+
+@app.get("/watch/{file_id}")
+async def watch_video(file_id: str):
+    return {
+        "message": "Streaming endpoint working",
+        "file_id": file_id
+    }
+
+
+@app.get("/download/{file_id}")
+async def download_video(file_id: str):
+    return {
+        "message": "Download endpoint working",
+        "file_id": file_id
+    }
 
 
 def run_fastapi():
