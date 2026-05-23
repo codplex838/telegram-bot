@@ -8,7 +8,7 @@ API_ID = 33604359
 API_HASH = "02a8b195fe839d3ed727ca746748db10"
 BOT_TOKEN = "7313598031:AAHpI5-UCF3Cyw2QwhiV0gyTUR41oiIvcFY"
 
-BOT_USERNAME = "BOT_USERNAME = "telegram-bot-1-az9g.onrender.com""
+BOT_USERNAME = "telegram-bot-1-az9g.onrender.com"
 
 bot = Client(
     "streambot",
