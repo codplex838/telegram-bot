@@ -5,9 +5,9 @@ import uvicorn
 import threading
 import uuid
 
-API_ID = 123456
-API_HASH = "your_api_hash"
-BOT_TOKEN = "your_bot_token"
+API_ID = 33604359
+API_HASH = "02a8b195fe839d3ed727ca746748db10"
+BOT_TOKEN = "7313598031:AAHpI5-UCF3Cyw2QwhiV0gyTUR41oiIvcFY"
 
 bot = Client(
     "streambot",
