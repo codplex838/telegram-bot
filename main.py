@@ -1,13 +1,14 @@
 from pyrogram import Client, filters
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
 import uvicorn
 import threading
-import uuid
+import os
 
 API_ID = 33604359
 API_HASH = "02a8b195fe839d3ed727ca746748db10"
 BOT_TOKEN = "7313598031:AAHpI5-UCF3Cyw2QwhiV0gyTUR41oiIvcFY"
+
+BOT_USERNAME = "BOT_USERNAME = "telegram-bot-1-az9g.onrender.com""
 
 bot = Client(
     "streambot",
@@ -18,57 +19,28 @@ bot = Client(
 
 app = FastAPI()
 
-FILES = {}
+
+@app.get("/")
+async def home():
+    return {"status": "Bot Running"}
 
 
 @bot.on_message(filters.video | filters.document)
-async def video_handler(client, message):
+async def generate_link(client, message):
 
-    unique_id = str(uuid.uuid4())
+    file_id = message.video.file_id if message.video else message.document.file_id
 
-    FILES[unique_id] = {
-        "chat_id": message.chat.id,
-        "message_id": message.id
-    }
-
-    stream_link = f"https://your-render-url.onrender.com/watch/{unique_id}"
-    download_link = f"https://your-render-url.onrender.com/download/{unique_id}"
+    stream_link = f"https://{BOT_USERNAME}/watch/{file_id}"
+    download_link = f"https://{BOT_USERNAME}/download/{file_id}"
 
     await message.reply_text(
         f"▶ Stream:\n{stream_link}\n\n⬇ Download:\n{download_link}"
     )
 
 
-@app.get("/")
-async def home():
-    return {"status": "running"}
-
-
-@app.get("/watch/{file_id}")
-async def watch(file_id: str):
-
-    return HTMLResponse(f"""
-    <video width="100%" controls autoplay>
-        <source src="/download/{file_id}">
-    </video>
-    """)
-
-
-@app.get("/download/{file_id}")
-async def download(file_id: str):
-
-    file_data = FILES.get(file_id)
-
-    if not file_data:
-        return {"error": "file not found"}
-
-    return {
-        "message": "Streaming system setup complete"
-    }
-
-
 def run_fastapi():
-    uvicorn.run(app, host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
 
 
 threading.Thread(target=run_fastapi).start()
