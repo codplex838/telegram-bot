@@ -1,33 +1,14 @@
 import os
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
-from pymongo import MongoClient
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-MONGO_URI = os.getenv("MONGO_URI")
-
-# MongoDB Connection
-client = MongoClient(MONGO_URI)
-
-# Database
-db = client["videoBot"]
-
-# Collection
-collection = db["users"]
+RENDER_URL = os.getenv("RENDER_EXTERNAL_URL")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    user = update.effective_user
-
-    # Save user in MongoDB
-    collection.insert_one({
-        "user_id": user.id,
-        "username": user.username,
-        "first_name": user.first_name
-    })
-
     await update.message.reply_text(
-        "Hello! Bot + MongoDB working successfully!"
+        "Hello! Bot working successfully!"
     )
 
 def main():
@@ -38,7 +19,11 @@ def main():
 
     print("Bot Started...")
 
-    app.run_polling(
+    app.run_webhook(
+        listen="0.0.0.0",
+        port=int(os.environ.get("PORT", 10000)),
+        url_path=BOT_TOKEN,
+        webhook_url=f"{RENDER_URL}/{BOT_TOKEN}",
         drop_pending_updates=True
     )
 
