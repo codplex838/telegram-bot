@@ -239,15 +239,16 @@ async def download_video(msg_id: str, request: Request):
         while current <= end:
 
             to_read = min(
-                1024 * 1024,
-                end - current + 1
-            )
+    4 * 1024 * 1024,
+    end - current + 1
+)
 
-            async for chunk in bot.stream_media(
-                msg,
-                offset=current,
-                limit=to_read = min(4 * 1024 * 1024, ...)
-                yield chunk
+async for chunk in bot.stream_media(
+    msg,
+    offset=current,
+    limit=to_read
+):
+    yield chunk
 
             current += to_read
 
