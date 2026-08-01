@@ -232,25 +232,25 @@ async def download_video(msg_id: str, request: Request):
 
     chunk_size = end - start + 1
 
-    async def streamer():
+        async def streamer():
 
-    current = start
+        current = start
 
-    while current <= end:
+        while current <= end:
 
-        to_read = min(
-            4 * 1024 * 1024,
-            end - current + 1
-        )
+            to_read = min(
+                4 * 1024 * 1024,
+                end - current + 1
+            )
 
-        async for chunk in bot.stream_media(
-            msg,
-            offset=current,
-            limit=to_read
-        ):
-            yield chunk
+            async for chunk in bot.stream_media(
+                msg,
+                offset=current,
+                limit=to_read
+            ):
+                yield chunk
 
-        current += to_read
+            current += to_read
 
     headers = {
         "Accept-Ranges": "bytes",
