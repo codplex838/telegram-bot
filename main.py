@@ -232,7 +232,7 @@ async def download_video(msg_id: str, request: Request):
 
     chunk_size = end - start + 1
 
-        async def streamer():
+    async def streamer():
 
         current = start
 
