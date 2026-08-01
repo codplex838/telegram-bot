@@ -12,7 +12,7 @@ import mimetypes
 
 API_ID = 33604359
 API_HASH = "02a8b195fe839d3ed727ca746748db10"
-BOT_TOKEN = "7313598031:AAHpI5-UCF3Cyw2QwhiV0gyTUR41oiIvcFY"
+BOT_TOKEN = "7313598031:AAFsiuouW2fH5cGdAow-UTIH6LL6W5VtMz8"
 
 # =========================================================
 # DOMAIN
