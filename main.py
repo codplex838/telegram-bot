@@ -246,8 +246,7 @@ async def download_video(msg_id: str, request: Request):
             async for chunk in bot.stream_media(
                 msg,
                 offset=current,
-                limit=to_read
-            ):
+                limit=to_read = min(4 * 1024 * 1024, ...)
                 yield chunk
 
             current += to_read
@@ -257,7 +256,7 @@ async def download_video(msg_id: str, request: Request):
         "Content-Length": str(chunk_size),
         "Content-Range": f"bytes {start}-{end}/{file_size}",
         "Content-Disposition": f'inline; filename="{file_name}"',
-        "Cache-Control": "no-cache",
+        "Cache-Control": "public, max-age=86400",
         "Connection": "keep-alive"
     }
 
